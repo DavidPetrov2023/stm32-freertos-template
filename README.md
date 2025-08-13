@@ -1,69 +1,61 @@
-# STM32 FreeRTOS Template
+# STM32 FreeRTOS Template with Unit Tests and Coverage
 
-Minimal CMake + FreeRTOS template project for STM32 development with VS Code, Ninja, and OpenOCD.
+This project is a **STM32 FreeRTOS template** designed for embedded development.  
+It now includes:
+- **Google Test** integration for unit testing
+- **Code coverage** support with LCOV + HTML reports
+- **CMake-based** build system for portability
+- Separate build directories for firmware and tests
 
-## 📂 Project structure
+## Features
+- **FreeRTOS** support for STM32
+- **Separation of application and board layers**
+- **Unit tests** in the `tests/` folder
+- **Coverage reports** generated to `build-tests/coverage_html/index.html`
+- Easy setup with `build.sh` and `run_tests.sh` scripts
 
+## Folder Structure
 ```
-STM32-FREERTOS-TEMPLATE/
-├── app/                 # Application code (user logic)
-│   ├── include/         # Application headers
-│   └── src/             # Application sources
-├── boards/              # Board-specific configs (CubeMX, HAL, FreeRTOS)
-│   └── nucleo_g070rb/   # Example board
-│       ├── cube/        # CubeMX-generated sources
-│       ├── board_config.h
-│       ├── CMakeLists.txt
-│       ├── st_mcu_g0.cfg
-│       └── STM32G070.svd
-├── build/               # Build output (ignored in Git)
-├── CMakeLists.txt       # Root CMake configuration
-├── flash.sh             # Script to flash firmware via OpenOCD
-├── rebuild.sh           # Clean & rebuild script
-├── .vscode/             # VS Code debug/build configs
-│   ├── launch.json
-│   ├── settings.json
-│   └── tasks.json
-└── README.md
+stm32-freertos-template/
+├── app/              # Application code
+├── board/            # Board-specific code
+├── freertos/         # FreeRTOS kernel
+├── tests/            # Unit tests
+├── build/            # Firmware build output
+├── build-tests/      # Unit test build output
+├── build.sh          # Build firmware script
+├── run_tests.sh      # Build & run tests + coverage script
+└── CMakeLists.txt    # Main CMake configuration
 ```
 
-## 🛠️ Prerequisites
-
-Install required tools:
-
+## Running Tests
 ```bash
-sudo apt install cmake ninja-build openocd gcc-arm-none-eabi gdb-multiarch
+./run_tests.sh
 ```
+This will:
+1. Configure the `build-tests/` directory with GoogleTest
+2. Build the `unit_tests` binary
+3. Run all tests
+4. Generate a **code coverage HTML report**
 
-## 🚀 Build
-
+Open the coverage report:
 ```bash
-./rebuild.sh
+xdg-open build-tests/coverage_html/index.html
 ```
 
-Or manually:
-
+## Building Firmware
 ```bash
-mkdir -p build
-cd build
-cmake -G Ninja ..
-ninja
+./build.sh
 ```
 
-## 🔥 Flash to board
+## Requirements
+- **CMake >= 3.20**
+- **gcc-arm-none-eabi** for firmware
+- **g++ / gcc** for unit tests
+- **lcov** and **genhtml** for coverage
 
+## Notes
+- Make sure to clean build directories when switching between Ninja and Unix Makefiles:
 ```bash
-./flash.sh
+rm -rf build/ build-tests/
 ```
-
-## 🐞 Debug in VS Code
-
-1. Connect ST-Link.
-2. Open the project in VS Code.
-3. Press **F5** or choose *Debug (OpenOCD + ST-Link)* from the debug menu.
-
-The debugger will stop at `main()` by default.
-
-## 📜 License
-
-MIT License
