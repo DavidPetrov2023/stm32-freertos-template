@@ -7,18 +7,24 @@
       "request": "launch",
       "servertype": "openocd",
       "cwd": "${workspaceFolder}",
-      "executable": "${workspaceFolder}/build/app/app.elf",
-      "configFiles": ["${workspaceFolder}/boards/nucleo_g070rb/st_mcu_g0.cfg"],
+      "executable": "${workspaceFolder}/build/app.elf",
+      "configFiles": [
+        "${workspaceFolder}/boards/nucleo_g070rb/st_mcu_g0.cfg"
+      ],
       "svdFile": "${workspaceFolder}/boards/nucleo_g070rb/STM32G070.svd",
       "gdbPath": "/usr/bin/gdb-multiarch",
+      // break at Reset_Handler, then run straight to main()
       "stopAtEntry": true,
-      "runToEntryPoint": "",
+      "runToEntryPoint": "main",
+      // make sure target is halted before setting breakpoints
+      "preLaunchCommands": [
+        "monitor reset halt"
+      ],
       "preLaunchTask": "Build (Ninja)",
       "serverLaunchTimeout": 10000,
       "showDevDebugOutput": "raw",
       "rtos": "FreeRTOS",
-
-      // přidáno
+      // after debug session, release the target and stop OpenOCD
       "postTerminateCommands": [
         "monitor reset run",
         "monitor shutdown"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Vyber generátor (Ninja preferováno)
+# Select generator (prefer Ninja if available)
 if command -v ninja >/dev/null 2>&1; then
   GEN="Ninja"
 else
@@ -10,7 +10,7 @@ fi
 
 BUILD_DIR="build-tests"
 
-# Když už existuje cache s jiným generátorem, smaž ji
+# If a cache exists with a different generator, remove it
 if [[ -f "${BUILD_DIR}/CMakeCache.txt" ]]; then
   CUR_GEN=$(grep -E '^CMAKE_GENERATOR(:INTERNAL|:STRING)=' "${BUILD_DIR}/CMakeCache.txt" | head -n1 | cut -d= -f2- || true)
   if [[ "${CUR_GEN:-}" != "$GEN" ]]; then
@@ -19,13 +19,14 @@ if [[ -f "${BUILD_DIR}/CMakeCache.txt" ]]; then
   fi
 fi
 
-# Configure s coverage
+# Configure with coverage enabled
 cmake -S tests -B "${BUILD_DIR}" -G "$GEN" -DENABLE_COVERAGE=ON
 
-# Build a spusť coverage target (vygeneruje HTML)
+# Build and run the coverage target (will generate HTML report)
 cmake --build "${BUILD_DIR}" -j
 cmake --build "${BUILD_DIR}" --target coverage -j1
 
 echo
-echo "[OK] Coverage hotovo."
-echo "Otevři: ${BUILD_DIR}/coverage_html/index.html"
+echo "[OK] Coverage complete."
+echo "Open: ${BUILD_DIR}/coverage_html/index.html"
+

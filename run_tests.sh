@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Vyber generátor (Ninja preferováno)
+# Select the generator (prefer Ninja if available)
 if command -v ninja >/dev/null 2>&1; then
   GEN="Ninja"
 else
@@ -10,7 +10,7 @@ fi
 
 BUILD_DIR="build-tests"
 
-# Když už existuje cache s jiným generátorem, smaž ji
+# If a cache already exists with a different generator, remove it
 if [[ -f "${BUILD_DIR}/CMakeCache.txt" ]]; then
   CUR_GEN=$(grep -E '^CMAKE_GENERATOR(:INTERNAL|:STRING)=' "${BUILD_DIR}/CMakeCache.txt" | head -n1 | cut -d= -f2- || true)
   if [[ "${CUR_GEN:-}" != "$GEN" ]]; then
@@ -19,7 +19,7 @@ if [[ -f "${BUILD_DIR}/CMakeCache.txt" ]]; then
   fi
 fi
 
-# Configure & build & run
+# Configure, build, and run tests
 cmake -S tests -B "${BUILD_DIR}" -G "$GEN" -DENABLE_COVERAGE=OFF
 cmake --build "${BUILD_DIR}" -j
 ctest --test-dir "${BUILD_DIR}" --output-on-failure
