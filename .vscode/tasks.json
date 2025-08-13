@@ -1,0 +1,19 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build (Ninja)",
+      "type": "shell",
+      "command": "cmake --build build",
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": ["$gcc"],
+      "group": { "kind": "build", "isDefault": true }
+    },
+    {
+      "label": "Clean",
+      "type": "shell",
+      "command": "cmake --build build --target clean",
+      "options": { "cwd": "${workspaceFolder}" }
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+/home/david/Cloud/stm32-freertos-template/build/CMakeFiles/edit_cache.dir
+/home/david/Cloud/stm32-freertos-template/build/CMakeFiles/rebuild_cache.dir
+/home/david/Cloud/stm32-freertos-template/build/boards/nucleo_g070rb/CMakeFiles/cube_fw_nucleo_g070rb.dir
+/home/david/Cloud/stm32-freertos-template/build/boards/nucleo_g070rb/CMakeFiles/edit_cache.dir
+/home/david/Cloud/stm32-freertos-template/build/boards/nucleo_g070rb/CMakeFiles/rebuild_cache.dir
+/home/david/Cloud/stm32-freertos-template/build/app/CMakeFiles/app.elf.dir
+/home/david/Cloud/stm32-freertos-template/build/app/CMakeFiles/edit_cache.dir
+/home/david/Cloud/stm32-freertos-template/build/app/CMakeFiles/rebuild_cache.dir

@@ -1,0 +1,5 @@
+{
+  "cortex-debug.openocdPath": "/usr/bin/openocd",
+  "cortex-debug.gdbPath": "/usr/bin/gdb-multiarch",
+  "cmake.buildDirectory": "${workspaceFolder}/build"
+}
