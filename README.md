@@ -1,106 +1,124 @@
 # STM32 FreeRTOS Template with OOP-like Driver Structure
 
-This repository provides a modern STM32 FreeRTOS project template that follows a modular and OOP-like design, inspired by Renesas and layered architecture best practices.
+This repository provides a modern **STM32 FreeRTOS project template** that follows a modular and OOP-like design, inspired by Renesas and layered architecture best practices.
+
+---
 
 ## ✨ Features
 
 - **FreeRTOS** integration for STM32
 - **OOP-like driver structure** using `interfaces`, `instances`, and `drivers`
-- **Board abstraction** through `board_config.h` and dedicated board directories
+- **Board abstraction** via `board_config.h` and board-specific directories
 - **HAL (CubeMX) + FreeRTOS middleware** integrated as a CMake library
-- **Unit testing** support with GoogleTest (GTest) and optional coverage reports
-- **Cross-platform build** with `CMake` + `Ninja` + `arm-none-eabi-gcc`
-- **Debug ready** with OpenOCD and ST-Link (VS Code `cortex-debug`)
+- **Unit testing** with GoogleTest (GTest) and optional coverage reports
+- **Cross-platform build**: `CMake` + `Ninja` + `arm-none-eabi-gcc`
+- **Debug ready**: OpenOCD + ST-Link (`cortex-debug` in VS Code)
+
+---
 
 ## 📂 Project Structure
 
+```
 .
-├── boards/ # Board-specific code and CubeMX generated sources
-│ └── nucleo_g070rb/
-│ ├── cube/ # HAL + FreeRTOS from CubeMX
-│ ├── st_mcu_g0.cfg # OpenOCD configuration
-│ └── board_config.h # Pin definitions and board setup
+├── boards/                    # Board-specific code and CubeMX sources
+│   └── nucleo_g070rb/
+│       ├── cube/               # HAL + FreeRTOS from CubeMX
+│       ├── st_mcu_g0.cfg       # OpenOCD configuration
+│       └── board_config.h      # Pin definitions and board setup
 │
-├── drivers/ # Low-level drivers
-│ └── led/
-│ ├── led_gpio.c
-│ └── led_gpio.h
+├── drivers/                    # Low-level hardware drivers
+│   └── led/
+│       ├── led_gpio.c
+│       └── led_gpio.h
 │
-├── interfaces/ # Abstract interfaces (header-only contracts)
-│ └── led_interface.h
+├── interfaces/                 # Abstract APIs (header-only contracts)
+│   └── led_interface.h
 │
-├── instances/ # Concrete instances binding drivers to hardware
-│ └── led_instances.c
+├── instances/                  # Bind drivers to board configuration
+│   └── led_instances.c
 │
-├── src/ # Application source code
-│ └── main_app.c
+├── src/                        # Application code
+│   └── main_app.c
 │
-├── tests/ # Unit tests with GoogleTest
+├── tests/                      # Unit tests with GoogleTest
 │
-├── CMakeLists.txt # Root CMake configuration
-├── rebuild.sh # Build helper script
-├── flash.sh # Flash helper script
+├── CMakeLists.txt               # Root CMake configuration
+├── rebuild.sh                   # Build helper script
+├── flash.sh                     # Flash helper script
 └── README.md
+```
 
+---
 
 ## 🚀 Building the Project
 
-Make sure you have the following installed:
+**Requirements:**
 
 - `arm-none-eabi-gcc` toolchain
-- `CMake` (>= 3.20)
+- `CMake` ≥ 3.20
 - `Ninja` build system
 - `OpenOCD` or `st-flash`
 
 ### Build
 ```bash
 ./rebuild.sh
+```
 
-Flash
-
+### Flash
+```bash
 ./flash.sh
+```
 
-Debug in VS Code
+### Debug in VS Code
 
-    Install the Cortex-Debug extension.
+1. Install the **Cortex-Debug** extension  
+2. Open the project folder in VS Code  
+3. Press **F5** to start debugging  
 
-    Open the project folder in VS Code.
+---
 
-    Press F5 to start debugging.
+## 🧪 Running Unit Tests
 
-🧪 Running Unit Tests
-
-Build and run tests on your host machine:
-
+**Build & run tests on host:**
+```bash
 cmake -S tests -B build-tests
 cmake --build build-tests
 cd build-tests && ctest
+```
 
-Enable coverage (optional):
-
+**Enable coverage (optional):**
+```bash
 cmake -S tests -B build-tests -DENABLE_COVERAGE=ON
 cmake --build build-tests
 cd build-tests && make coverage
+```
 
-🛠 OOP-like Design
+---
 
-The project follows an interface-instance-driver pattern:
+## 🛠 OOP-like Design
 
-    Interfaces define generic APIs (led_interface.h).
+The project follows an **Interface → Driver → Instance → Application** pattern:
 
-    Drivers implement hardware-specific functionality (led_gpio.c).
+```
+[ Interface ]  -->  Generic API definition
+[ Driver    ]  -->  Hardware-specific implementation
+[ Instance  ]  -->  Binds driver to board config
+[ App Logic ]  -->  Uses interfaces only
+```
 
-    Instances connect drivers to board-level configuration (led_instances.c).
+**Benefits:**
+- Code reusability across boards
+- Easier unit testing (mock drivers)
+- Clear separation between hardware and logic
 
-This allows:
+Example for LED:
 
-    Code reusability across different boards
+1. **Interface**: `led_interface.h` – defines `LED_On()`, `LED_Off()`  
+2. **Driver**: `led_gpio.c` – implements functions using HAL GPIO  
+3. **Instance**: `led_instances.c` – connects driver to `LED1` pin from `board_config.h`  
 
-    Easier unit testing (mocking drivers)
+---
 
-    Clear separation between hardware abstraction and application logic
+## 📜 License
 
-📜 License
-
-MIT License – feel free to use and modify.
-
+MIT License – feel free to use, modify, and distribute.
