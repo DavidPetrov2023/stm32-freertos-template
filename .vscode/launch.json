@@ -16,7 +16,13 @@
       "preLaunchTask": "Build (Ninja)",
       "serverLaunchTimeout": 10000,
       "showDevDebugOutput": "raw",
-      "rtos": "FreeRTOS"
+      "rtos": "FreeRTOS",
+
+      // přidáno
+      "postTerminateCommands": [
+        "monitor reset run",
+        "monitor shutdown"
+      ]
     }
   ]
 }
