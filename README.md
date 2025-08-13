@@ -1,61 +1,106 @@
-# STM32 FreeRTOS Template with Unit Tests and Coverage
+# STM32 FreeRTOS Template with OOP-like Driver Structure
 
-This project is a **STM32 FreeRTOS template** designed for embedded development.  
-It now includes:
-- **Google Test** integration for unit testing
-- **Code coverage** support with LCOV + HTML reports
-- **CMake-based** build system for portability
-- Separate build directories for firmware and tests
+This repository provides a modern STM32 FreeRTOS project template that follows a modular and OOP-like design, inspired by Renesas and layered architecture best practices.
 
-## Features
-- **FreeRTOS** support for STM32
-- **Separation of application and board layers**
-- **Unit tests** in the `tests/` folder
-- **Coverage reports** generated to `build-tests/coverage_html/index.html`
-- Easy setup with `build.sh` and `run_tests.sh` scripts
+## ✨ Features
 
-## Folder Structure
-```
-stm32-freertos-template/
-├── app/              # Application code
-├── board/            # Board-specific code
-├── freertos/         # FreeRTOS kernel
-├── tests/            # Unit tests
-├── build/            # Firmware build output
-├── build-tests/      # Unit test build output
-├── build.sh          # Build firmware script
-├── run_tests.sh      # Build & run tests + coverage script
-└── CMakeLists.txt    # Main CMake configuration
-```
+- **FreeRTOS** integration for STM32
+- **OOP-like driver structure** using `interfaces`, `instances`, and `drivers`
+- **Board abstraction** through `board_config.h` and dedicated board directories
+- **HAL (CubeMX) + FreeRTOS middleware** integrated as a CMake library
+- **Unit testing** support with GoogleTest (GTest) and optional coverage reports
+- **Cross-platform build** with `CMake` + `Ninja` + `arm-none-eabi-gcc`
+- **Debug ready** with OpenOCD and ST-Link (VS Code `cortex-debug`)
 
-## Running Tests
+## 📂 Project Structure
+
+.
+├── boards/ # Board-specific code and CubeMX generated sources
+│ └── nucleo_g070rb/
+│ ├── cube/ # HAL + FreeRTOS from CubeMX
+│ ├── st_mcu_g0.cfg # OpenOCD configuration
+│ └── board_config.h # Pin definitions and board setup
+│
+├── drivers/ # Low-level drivers
+│ └── led/
+│ ├── led_gpio.c
+│ └── led_gpio.h
+│
+├── interfaces/ # Abstract interfaces (header-only contracts)
+│ └── led_interface.h
+│
+├── instances/ # Concrete instances binding drivers to hardware
+│ └── led_instances.c
+│
+├── src/ # Application source code
+│ └── main_app.c
+│
+├── tests/ # Unit tests with GoogleTest
+│
+├── CMakeLists.txt # Root CMake configuration
+├── rebuild.sh # Build helper script
+├── flash.sh # Flash helper script
+└── README.md
+
+
+## 🚀 Building the Project
+
+Make sure you have the following installed:
+
+- `arm-none-eabi-gcc` toolchain
+- `CMake` (>= 3.20)
+- `Ninja` build system
+- `OpenOCD` or `st-flash`
+
+### Build
 ```bash
-./run_tests.sh
-```
-This will:
-1. Configure the `build-tests/` directory with GoogleTest
-2. Build the `unit_tests` binary
-3. Run all tests
-4. Generate a **code coverage HTML report**
+./rebuild.sh
 
-Open the coverage report:
-```bash
-xdg-open build-tests/coverage_html/index.html
-```
+Flash
 
-## Building Firmware
-```bash
-./build.sh
-```
+./flash.sh
 
-## Requirements
-- **CMake >= 3.20**
-- **gcc-arm-none-eabi** for firmware
-- **g++ / gcc** for unit tests
-- **lcov** and **genhtml** for coverage
+Debug in VS Code
 
-## Notes
-- Make sure to clean build directories when switching between Ninja and Unix Makefiles:
-```bash
-rm -rf build/ build-tests/
-```
+    Install the Cortex-Debug extension.
+
+    Open the project folder in VS Code.
+
+    Press F5 to start debugging.
+
+🧪 Running Unit Tests
+
+Build and run tests on your host machine:
+
+cmake -S tests -B build-tests
+cmake --build build-tests
+cd build-tests && ctest
+
+Enable coverage (optional):
+
+cmake -S tests -B build-tests -DENABLE_COVERAGE=ON
+cmake --build build-tests
+cd build-tests && make coverage
+
+🛠 OOP-like Design
+
+The project follows an interface-instance-driver pattern:
+
+    Interfaces define generic APIs (led_interface.h).
+
+    Drivers implement hardware-specific functionality (led_gpio.c).
+
+    Instances connect drivers to board-level configuration (led_instances.c).
+
+This allows:
+
+    Code reusability across different boards
+
+    Easier unit testing (mocking drivers)
+
+    Clear separation between hardware abstraction and application logic
+
+📜 License
+
+MIT License – feel free to use and modify.
+
