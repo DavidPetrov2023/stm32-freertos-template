@@ -6,6 +6,8 @@ cmake_install.cmake
 Makefile
 
 /build-tests/
+/build-tests/coverage.info
+/build-tests/coverage_html/
 *.elf
 *.map
 *.bin
