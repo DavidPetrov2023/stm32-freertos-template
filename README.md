@@ -1,19 +1,61 @@
-# STM32 FreeRTOS Template (Nucleo-G070RB)
+# STM32 FreeRTOS Template
 
-Minimal CMake + FreeRTOS šablona pro **STM32 Nucleo-G070RB**:
-- STM32Cube HAL + FreeRTOS (kernel + port pro CM0+)
-- CMake + Ninja, `arm-none-eabi-gcc`
-- OpenOCD + VS Code (Cortex-Debug)
-- Jednoduché skripty `rebuild.sh` a `flash.sh`
+Minimal CMake + FreeRTOS template project for STM32 development with VS Code, Ninja, and OpenOCD.
 
-## Požadavky
+## 📂 Project structure
 
-- `arm-none-eabi-gcc`, `arm-none-eabi-gdb`, `arm-none-eabi-objcopy`, `arm-none-eabi-size`
-- `cmake`, `ninja`
-- `openocd` (pro debug), nebo `st-flash` (pro rychlé nahrání)
-- VS Code + rozšíření **Cortex-Debug**
+STM32-FREERTOS-TEMPLATE/
+├── app/ # Application code (user logic)
+│ ├── include/ # Application headers
+│ └── src/ # Application sources
+├── boards/ # Board-specific configs (CubeMX, HAL, FreeRTOS)
+│ └── nucleo_g070rb/ # Example board
+│ ├── cube/ # CubeMX-generated sources
+│ ├── board_config.h
+│ ├── CMakeLists.txt
+│ ├── st_mcu_g0.cfg
+│ └── STM32G070.svd
+├── build/ # Build output (ignored in Git)
+├── CMakeLists.txt # Root CMake configuration
+├── flash.sh # Script to flash firmware via OpenOCD
+├── rebuild.sh # Clean & rebuild script
+├── .vscode/ # VS Code debug/build configs
+│ ├── launch.json
+│ ├── settings.json
+│ └── tasks.json
+└── README.md
 
-Ubuntu:
+## 🛠️ Prerequisites
+
+Install required tools:
+
 ```bash
-sudo apt install cmake ninja-build openocd stlink-tools
-sudo apt install gcc-arm-none-eabi gdb-multiarch   # nebo balík s arm-none-eabi-gdb
+sudo apt install cmake ninja-build openocd gcc-arm-none-eabi gdb-multiarch
+
+🚀 Build
+
+./rebuild.sh
+
+Or manually:
+
+mkdir -p build
+cd build
+cmake -G Ninja ..
+ninja
+
+🔥 Flash to board
+
+./flash.sh
+
+🐞 Debug in VS Code
+
+    Connect ST-Link.
+
+    Open the project in VS Code.
+
+    Press F5 or choose Debug (OpenOCD + ST-Link) from the debug menu.
+
+The debugger will stop at main() by default.
+📜 License
+
+MIT License
