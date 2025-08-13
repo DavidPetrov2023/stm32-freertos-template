@@ -34,3 +34,9 @@ set_property(GLOBAL PROPERTY LD_FLAGS       "${LD_FLAGS}")
 # Board knihovna a aplikace
 add_subdirectory(boards/${BOARD})
 add_subdirectory(app)
+
+option(BUILD_TESTS "Build unit tests (host-only, g++)" OFF)
+
+if(BUILD_TESTS)
+    add_subdirectory(tests)
+endif()

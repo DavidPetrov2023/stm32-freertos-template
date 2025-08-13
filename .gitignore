@@ -5,6 +5,12 @@ CMakeCache.txt
 cmake_install.cmake
 Makefile
 
+/build-tests/
+*.elf
+*.map
+*.bin
+*.hex
+
 # VS Code workspace (pokud nechceš commitovat lokální nastavení)
 .vscode/
 *.code-workspace
