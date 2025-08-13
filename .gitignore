@@ -1,0 +1,38 @@
+# Build output (CMake, Ninja, Makefiles)
+build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# VS Code workspace (pokud nechceš commitovat lokální nastavení)
+.vscode/
+*.code-workspace
+
+# Compiled binaries / artifacts
+*.elf
+*.bin
+*.hex
+*.map
+
+# Temporary files
+*.o
+*.obj
+*.log
+
+# Backup files
+*~
+*.bak
+
+# Debugger files (ponech, pokud nechceš verzovat)
+*.svd
+launch.json
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Ninja build system files
+.ninja_deps
+.ninja_log
+CMakeConfigureLog.yaml
