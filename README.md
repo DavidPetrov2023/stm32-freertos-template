@@ -4,26 +4,28 @@ Minimal CMake + FreeRTOS template project for STM32 development with VS Code, Ni
 
 ## 📂 Project structure
 
+```
 STM32-FREERTOS-TEMPLATE/
-├── app/ # Application code (user logic)
-│ ├── include/ # Application headers
-│ └── src/ # Application sources
-├── boards/ # Board-specific configs (CubeMX, HAL, FreeRTOS)
-│ └── nucleo_g070rb/ # Example board
-│ ├── cube/ # CubeMX-generated sources
-│ ├── board_config.h
-│ ├── CMakeLists.txt
-│ ├── st_mcu_g0.cfg
-│ └── STM32G070.svd
-├── build/ # Build output (ignored in Git)
-├── CMakeLists.txt # Root CMake configuration
-├── flash.sh # Script to flash firmware via OpenOCD
-├── rebuild.sh # Clean & rebuild script
-├── .vscode/ # VS Code debug/build configs
-│ ├── launch.json
-│ ├── settings.json
-│ └── tasks.json
+├── app/                 # Application code (user logic)
+│   ├── include/         # Application headers
+│   └── src/             # Application sources
+├── boards/              # Board-specific configs (CubeMX, HAL, FreeRTOS)
+│   └── nucleo_g070rb/   # Example board
+│       ├── cube/        # CubeMX-generated sources
+│       ├── board_config.h
+│       ├── CMakeLists.txt
+│       ├── st_mcu_g0.cfg
+│       └── STM32G070.svd
+├── build/               # Build output (ignored in Git)
+├── CMakeLists.txt       # Root CMake configuration
+├── flash.sh             # Script to flash firmware via OpenOCD
+├── rebuild.sh           # Clean & rebuild script
+├── .vscode/             # VS Code debug/build configs
+│   ├── launch.json
+│   ├── settings.json
+│   └── tasks.json
 └── README.md
+```
 
 ## 🛠️ Prerequisites
 
@@ -31,31 +33,37 @@ Install required tools:
 
 ```bash
 sudo apt install cmake ninja-build openocd gcc-arm-none-eabi gdb-multiarch
+```
 
-🚀 Build
+## 🚀 Build
 
+```bash
 ./rebuild.sh
+```
 
 Or manually:
 
+```bash
 mkdir -p build
 cd build
 cmake -G Ninja ..
 ninja
+```
 
-🔥 Flash to board
+## 🔥 Flash to board
 
+```bash
 ./flash.sh
+```
 
-🐞 Debug in VS Code
+## 🐞 Debug in VS Code
 
-    Connect ST-Link.
+1. Connect ST-Link.
+2. Open the project in VS Code.
+3. Press **F5** or choose *Debug (OpenOCD + ST-Link)* from the debug menu.
 
-    Open the project in VS Code.
+The debugger will stop at `main()` by default.
 
-    Press F5 or choose Debug (OpenOCD + ST-Link) from the debug menu.
-
-The debugger will stop at main() by default.
-📜 License
+## 📜 License
 
 MIT License
