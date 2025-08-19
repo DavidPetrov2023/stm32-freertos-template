@@ -4,7 +4,7 @@
 #include "drivers/led/led_gpio.h"
 
 // driver-specific ctrl
-static led_gpio_ctrl_t g_led0_ctrl;
+static led_gpio_stm32_hal_t g_led0_ctrl;
 
 // common cfg (z led_api.h)
 static const led_cfg_t g_led0_cfg = {

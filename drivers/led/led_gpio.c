@@ -2,16 +2,16 @@
 #include "drivers/led/led_gpio.h"
 #include "board_config.h"
 
-static inline led_gpio_ctrl_t *as_gpio(led_ctrl_t *p)
+static inline led_gpio_stm32_hal_t *as_gpio(led_ctrl_t *p)
 {
-    return (led_gpio_ctrl_t *) p;
+    return (led_gpio_stm32_hal_t *) p;
 }
 
 static app_err_t led_open(led_ctrl_t *p, const led_cfg_t *cfg)
 {
     if (!p || !cfg)
         return APP_ERROR_INVALID_ARG;
-    led_gpio_ctrl_t *h = as_gpio(p);
+    led_gpio_stm32_hal_t *h = as_gpio(p);
     h->port = (GPIO_TypeDef *) cfg->port;
     h->pin = cfg->pin;
     h->active_high = cfg->active_high;
@@ -23,7 +23,7 @@ static app_err_t led_close(led_ctrl_t *p)
 {
     if (!p)
         return APP_ERROR_INVALID_ARG;
-    led_gpio_ctrl_t *h = as_gpio(p);
+    led_gpio_stm32_hal_t *h = as_gpio(p);
     h->is_open = false;
     return APP_SUCCESS;
 }
@@ -32,7 +32,7 @@ static app_err_t led_on(led_ctrl_t *p)
 {
     if (!p)
         return APP_ERROR_INVALID_ARG;
-    led_gpio_ctrl_t *h = as_gpio(p);
+    led_gpio_stm32_hal_t *h = as_gpio(p);
     if (!h->is_open)
         return APP_ERROR_NOT_OPEN;
     HAL_GPIO_WritePin(h->port, h->pin, h->active_high ? GPIO_PIN_SET : GPIO_PIN_RESET);
@@ -43,7 +43,7 @@ static app_err_t led_off(led_ctrl_t *p)
 {
     if (!p)
         return APP_ERROR_INVALID_ARG;
-    led_gpio_ctrl_t *h = as_gpio(p);
+    led_gpio_stm32_hal_t *h = as_gpio(p);
     if (!h->is_open)
         return APP_ERROR_NOT_OPEN;
     HAL_GPIO_WritePin(h->port, h->pin, h->active_high ? GPIO_PIN_RESET : GPIO_PIN_SET);
@@ -54,7 +54,7 @@ static app_err_t led_toggle(led_ctrl_t *p)
 {
     if (!p)
         return APP_ERROR_INVALID_ARG;
-    led_gpio_ctrl_t *h = as_gpio(p);
+    led_gpio_stm32_hal_t *h = as_gpio(p);
     if (!h->is_open)
         return APP_ERROR_NOT_OPEN;
     HAL_GPIO_TogglePin(h->port, h->pin);

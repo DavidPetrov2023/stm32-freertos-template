@@ -9,7 +9,7 @@ typedef struct
     uint16_t pin;
     bool active_high;
     bool is_open;
-} led_gpio_ctrl_t;
+} led_gpio_stm32_hal_t;
 
 // API table implemented led_gpio.c
 extern const led_api_t g_led_gpio_on_hal;
