@@ -1,69 +1,91 @@
 // drivers/led/led_gpio.c
 #include "led_gpio.h"
 
-static inline led_gpio_stm32_hal_t *as_gpio(led_ctrl_t *p)
+// Cast generic controller to specific STM32 HAL-based handle
+static inline led_gpio_stm32_hal_t *as_gpio(led_ctrl_t *ctrl)
 {
-    return (led_gpio_stm32_hal_t *) p;
+    return (led_gpio_stm32_hal_t *) ctrl;
 }
 
-static app_err_t led_open(led_ctrl_t *p, const led_cfg_t *cfg)
+// Initialize LED driver with configuration
+static app_err_t led_open(led_ctrl_t *ctrl, const led_cfg_t *cfg)
 {
-    if (!p || !cfg)
+    if (!ctrl || !cfg)
         return APP_ERROR_INVALID_ARG;
 
-    // driver-specific configuration (see typedef below in led_gpio.h)
-    const led_gpio_cfg_t *c = (const led_gpio_cfg_t *) cfg;
+    const led_gpio_cfg_t *config = (const led_gpio_cfg_t *) cfg;
+    led_gpio_stm32_hal_t *handle = as_gpio(ctrl);
 
-    led_gpio_stm32_hal_t *h = as_gpio(p);
-    h->port = c->port;
-    h->pin = c->pin;
-    h->active_high = c->active_high;
-    h->is_open = true;
+    handle->port = config->port;
+    handle->pin = config->pin;
+    handle->active_high = config->active_high;
+    handle->is_open = true;
+
     return APP_SUCCESS;
 }
 
-static app_err_t led_close(led_ctrl_t *p)
+// Deinitialize LED driver
+static app_err_t led_close(led_ctrl_t *ctrl)
 {
-    if (!p)
+    if (!ctrl)
         return APP_ERROR_INVALID_ARG;
-    led_gpio_stm32_hal_t *h = as_gpio(p);
-    h->is_open = false;
+
+    led_gpio_stm32_hal_t *handle = as_gpio(ctrl);
+    handle->is_open = false;
+
     return APP_SUCCESS;
 }
 
-static app_err_t led_on(led_ctrl_t *p)
+// Turn LED on
+static app_err_t led_on(led_ctrl_t *ctrl)
 {
-    if (!p)
+    if (!ctrl)
         return APP_ERROR_INVALID_ARG;
-    led_gpio_stm32_hal_t *h = as_gpio(p);
-    if (!h->is_open)
+
+    led_gpio_stm32_hal_t *handle = as_gpio(ctrl);
+    if (!handle->is_open)
         return APP_ERROR_NOT_OPEN;
-    HAL_GPIO_WritePin(h->port, h->pin, h->active_high ? GPIO_PIN_SET : GPIO_PIN_RESET);
+
+    HAL_GPIO_WritePin(handle->port,
+                      handle->pin,
+                      handle->active_high ? GPIO_PIN_SET : GPIO_PIN_RESET);
+
     return APP_SUCCESS;
 }
 
-static app_err_t led_off(led_ctrl_t *p)
+// Turn LED off
+static app_err_t led_off(led_ctrl_t *ctrl)
 {
-    if (!p)
+    if (!ctrl)
         return APP_ERROR_INVALID_ARG;
-    led_gpio_stm32_hal_t *h = as_gpio(p);
-    if (!h->is_open)
+
+    led_gpio_stm32_hal_t *handle = as_gpio(ctrl);
+    if (!handle->is_open)
         return APP_ERROR_NOT_OPEN;
-    HAL_GPIO_WritePin(h->port, h->pin, h->active_high ? GPIO_PIN_RESET : GPIO_PIN_SET);
+
+    HAL_GPIO_WritePin(handle->port,
+                      handle->pin,
+                      handle->active_high ? GPIO_PIN_RESET : GPIO_PIN_SET);
+
     return APP_SUCCESS;
 }
 
-static app_err_t led_toggle(led_ctrl_t *p)
+// Toggle LED state
+static app_err_t led_toggle(led_ctrl_t *ctrl)
 {
-    if (!p)
+    if (!ctrl)
         return APP_ERROR_INVALID_ARG;
-    led_gpio_stm32_hal_t *h = as_gpio(p);
-    if (!h->is_open)
+
+    led_gpio_stm32_hal_t *handle = as_gpio(ctrl);
+    if (!handle->is_open)
         return APP_ERROR_NOT_OPEN;
-    HAL_GPIO_TogglePin(h->port, h->pin);
+
+    HAL_GPIO_TogglePin(handle->port, handle->pin);
+
     return APP_SUCCESS;
 }
 
+// Export driver API
 const led_api_t g_led_gpio_on_hal = {
     .open = led_open,
     .close = led_close,
