@@ -5,5 +5,9 @@
     "[cpp]": {
         "editor.defaultFormatter": "xaver.clang-format"
     },
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "files.associations": {
+        "board_config.h": "c",
+        "freertos.h": "c"
+    }
 }
