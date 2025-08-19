@@ -1,18 +1,18 @@
-# STM32 FreeRTOS Template with OOP-like Driver Structure
+# STM32 FreeRTOS Template (API → Driver → Instance → BSP → App)
 
-This repository provides a modern **STM32 FreeRTOS project template** that follows a modular and OOP-like design, inspired by Renesas and layered architecture best practices.
+Modern STM32 project template with clear separation of application logic from HAL.  
+The goal is to have **clean layers** and easy portability to another board or driver.
 
 ---
 
-## ✨ Features
+## ✨ Main Features
 
-- **FreeRTOS** integration for STM32
-- **OOP-like driver structure** using `interfaces`, `instances`, and `drivers`
-- **Board abstraction** via `board_config.h` and board-specific directories
-- **HAL (CubeMX) + FreeRTOS middleware** integrated as a CMake library
-- **Unit testing** with GoogleTest (GTest) and optional coverage reports
-- **Cross-platform build**: `CMake` + `Ninja` + `arm-none-eabi-gcc`
-- **Debug ready**: OpenOCD + ST-Link (`cortex-debug` in VS Code)
+- **FreeRTOS** on STM32 (CubeMX HAL + middleware integrated via CMake)
+- **Strict layer separation**: app never uses HAL directly
+- **BSP** (`board_bsp`) only exposes `board_init()`
+- **Driver/instance pattern** – easy driver swapping and testing
+- Built with **CMake + Ninja + arm-none-eabi-gcc**
+- Debug ready for **VS Code + Cortex-Debug (OpenOCD/ST-Link)**
 
 ---
 
@@ -20,105 +20,138 @@ This repository provides a modern **STM32 FreeRTOS project template** that follo
 
 ```
 .
-├── boards/                    # Board-specific code and CubeMX sources
-│   └── nucleo_g070rb/
-│       ├── cube/               # HAL + FreeRTOS from CubeMX
-│       ├── st_mcu_g0.cfg       # OpenOCD configuration
-│       └── board_config.h      # Pin definitions and board setup
+├─ app/
+│  ├─ include/
+│  └─ src/
+│      └─ main_app.c          # calls board_init(), creates tasks
 │
-├── drivers/                    # Low-level hardware drivers
-│   └── led/
-│       ├── led_gpio.c
-│       └── led_gpio.h
+├─ boards/
+│  └─ nucleo_g070rb/
+│     ├─ cube/                # CubeMX: HAL + FreeRTOS, startup, LD
+│     ├─ board.c              # board_init(): HAL_Init + clock + MX_GPIO_Init
+│     ├─ board_config.h       # public BSP header (no HAL types)
+│     ├─ board_pins_stm32g0.h # private pins (HAL macros)
+│     ├─ st_mcu_g0.cfg        # OpenOCD config
+│     └─ STM32G070.svd        # SVD for debug
 │
-├── interfaces/                 # Abstract APIs (header-only contracts)
-│   └── led_interface.h
+├─ drivers/
+│  └─ led/
+│     ├─ led_gpio.c           # driver over HAL GPIO
+│     └─ led_gpio.h
 │
-├── instances/                  # Bind drivers to board configuration
-│   └── led_instances.c
+├─ interfaces/
+│  └─ led_api.h               # pure API (vtable style)
 │
-├── src/                        # Application code
-│   └── main_app.c
+├─ instances/
+│  ├─ led_instances.c         # binds driver with board (g_led0)
+│  └─ led_instances.h
 │
-├── tests/                      # Unit tests with GoogleTest
-│
-├── CMakeLists.txt               # Root CMake configuration
-├── rebuild.sh                   # Build helper script
-├── flash.sh                     # Flash helper script
-└── README.md
+├─ CMakeLists.txt             # root; adds subdirs in proper order
+├─ rebuild.sh                 # build (Debug)
+└─ README.md
+```
+
+Rule: `app/` includes only `interfaces/` and instances (`led_instances.h`).  
+**Never** directly HAL or board_pins.
+
+---
+
+## 🧱 CMake Targets
+
+- `cube_fw` – CubeMX export (HAL, FreeRTOS, startup, LD)
+- `board_bsp` – `board_init()`, privately linked to `cube_fw`
+- `led_gpio` – LED driver, private link to `cube_fw`
+- `instances` – connect drivers with board
+- `app.elf` – main app; links `board_bsp`, `instances`, `cube_fw`
+
+Root `CMakeLists.txt` adds subdirs in order:
+
+```
+boards/${BOARD} → drivers/led → instances → app
 ```
 
 ---
 
-## 🚀 Building the Project
+## 🚀 Build
 
-**Requirements:**
+Requirements: `arm-none-eabi-gcc`, `cmake >= 3.20`, `ninja`, `openocd`.
 
-- `arm-none-eabi-gcc` toolchain
-- `CMake` ≥ 3.20
-- `Ninja` build system
-- `OpenOCD` or `st-flash`
-
-### Build
 ```bash
 ./rebuild.sh
 ```
 
-### Flash
-```bash
-./flash.sh
-```
-
-### Debug in VS Code
-
-1. Install the **Cortex-Debug** extension  
-2. Open the project folder in VS Code  
-3. Press **F5** to start debugging  
+Artifacts (Debug):
+- `build/app/app.elf`
+- `build/app.hex`
+- `build/app.bin`
+- `build/app.map`
 
 ---
 
-## 🧪 Running Unit Tests
+## 🔌 Flash
 
-**Build & run tests on host:**
+With OpenOCD:
+
 ```bash
-cmake -S tests -B build-tests
-cmake --build build-tests
-cd build-tests && ctest
+openocd -f boards/nucleo_g070rb/st_mcu_g0.cfg -c "program build/app/app.elf verify reset exit"
 ```
 
-**Enable coverage (optional):**
-```bash
-cmake -S tests -B build-tests -DENABLE_COVERAGE=ON
-cmake --build build-tests
-cd build-tests && make coverage
-```
+Or use `st-flash` / `STM32CubeProgrammer`.
 
 ---
 
-## 🛠 OOP-like Design
+## 🐞 Debug (VS Code)
 
-The project follows an **Interface → Driver → Instance → Application** pattern:
+Use **Cortex-Debug** extension. Example `launch.json`:
 
+```json
+"executable": "${workspaceFolder}/build/app/app.elf",
+"svdFile": "${workspaceFolder}/boards/nucleo_g070rb/STM32G070.svd",
+"configFiles": ["${workspaceFolder}/boards/nucleo_g070rb/st_mcu_g0.cfg"],
+"runToEntryPoint": "main"
 ```
-[ Interface ]  -->  Generic API definition
-[ Driver    ]  -->  Hardware-specific implementation
-[ Instance  ]  -->  Binds driver to board config
-[ App Logic ]  -->  Uses interfaces only
+
+Tip:  
+```json
+"executable": "${command:cmake.launchTargetPath}"
 ```
-
-**Benefits:**
-- Code reusability across boards
-- Easier unit testing (mock drivers)
-- Clear separation between hardware and logic
-
-Example for LED:
-
-1. **Interface**: `led_interface.h` – defines `LED_On()`, `LED_Off()`  
-2. **Driver**: `led_gpio.c` – implements functions using HAL GPIO  
-3. **Instance**: `led_instances.c` – connects driver to `LED1` pin from `board_config.h`  
+and select `app.elf` as CMake launch target.
 
 ---
 
-## 📜 License
+## 💡 LED Example
 
-MIT License – feel free to use, modify, and distribute.
+- **API**: `interfaces/led_api.h`
+- **Driver**: `drivers/led/led_gpio.[ch]` (HAL GPIO)
+- **Instance**: `instances/led_instances.[ch]` (`g_led0`)
+- **App**: `main_app.c` → FreeRTOS task blinking LED
+
+App never sees HAL, only API.
+
+---
+
+## 🧩 Porting to Another Board
+
+1. Create `boards/<new_board>/`:
+   - export CubeMX (`cube/`)
+   - `board.c` (`board_init()`)
+   - `board_config.h` (public, no HAL)
+   - `board_pins_*.h` (private)
+   - CMakeLists for `cube_fw_<board>` and `board_bsp`
+2. Set `BOARD` in root CMakeLists.txt.
+3. Adjust `instances`.
+
+---
+
+## 🧼 Code Style
+
+- No single-letter variables (except i/j in loops)
+- Descriptive names (`ctrl`, `config`, `handle`)
+- Comments only where names are not self-explanatory
+- HAL dependencies only in BSP/driver/instances, never in app
+
+---
+
+## 📄 License
+
+MIT
