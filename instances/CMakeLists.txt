@@ -1,5 +1,6 @@
 add_library(instances STATIC
     led_instances.c
+    uart_instances.c
 )
 
 # Public headers that should be visible to other targets (e.g. app):
@@ -16,7 +17,8 @@ target_include_directories(instances PRIVATE
 # Dependencies:
 # - PUBLIC: interfaces (propagated further)
 # - PRIVATE: led_gpio (driver) + cube_fw (for HAL/CMSIS include paths)
-target_link_libraries(instances
+ target_link_libraries(instances
     PRIVATE led_gpio
             cube_fw
-)
+    PUBLIC  driver_uart_stm32   # propagates to dependents
+ )

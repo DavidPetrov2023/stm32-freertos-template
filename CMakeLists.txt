@@ -38,5 +38,6 @@ set(BOARD nucleo_g070rb)
 # -------------------------------------------------
 add_subdirectory(boards/${BOARD})   # creates cube_fw_* and board_bsp
 add_subdirectory(drivers/led)       # led_gpio driver (links against cube_fw)
+add_subdirectory(drivers/uart)
 add_subdirectory(instances)         # g_led0 instance (links against led_gpio)
 add_subdirectory(app)               # app.elf (links against board_bsp, instances, cube_fw)

@@ -73,6 +73,11 @@ target_include_directories(cube_fw_${BOARD} PUBLIC
     ${CUBE_DIR}/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM0
     ${CUBE_DIR}/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM0PLUS
     ${CUBE_DIR}/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2
+
+    # --- add these (project-level headers) ---
+    ${CMAKE_SOURCE_DIR}/drivers
+    ${CMAKE_SOURCE_DIR}/interfaces
+    ${CMAKE_SOURCE_DIR}/instances
 )
 
 # --- Definitions & compile options ---
@@ -97,6 +102,7 @@ set_property(GLOBAL PROPERTY CUBE_LINK_FLAGS "${CUBE_LINK_FLAGS}")
 # --- Board BSP wrapper (board_init, board_config.h) ---
 add_library(board_bsp STATIC
     ${CMAKE_CURRENT_LIST_DIR}/board.c
+    ${CMAKE_CURRENT_LIST_DIR}/board_error.c
 )
 
 target_include_directories(board_bsp PUBLIC
