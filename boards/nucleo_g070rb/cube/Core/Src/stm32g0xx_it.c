@@ -23,10 +23,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-/* Avoid including project driver headers here to prevent macro collisions. */
-/* Forward declarations only (keep ISR minimal & decoupled). */
+/* Forward declarations only (keep ISR minimal & decoupled).
+   Do not include heavy headers here to avoid macro collisions. */
 typedef struct uart_stm32_ctrl uart_stm32_ctrl_t;
-extern uart_stm32_ctrl_t g_uart2_ctrl;
+extern uart_stm32_ctrl_t g_uart2_ctrl; /* defined in instances/uart_instances.c */
 void uart_stm32_irq_rx_feed(uart_stm32_ctrl_t *ctrl, uint8_t byte);
 /* USER CODE END Includes */
 
@@ -63,8 +63,6 @@ extern UART_HandleTypeDef huart2;
 extern TIM_HandleTypeDef htim6;
 
 /* USER CODE BEGIN EV */
-/* Export control block of UART2 instance (defined in instances/uart_instances.c). */
-extern uart_stm32_ctrl_t g_uart2_ctrl;
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -123,15 +121,35 @@ void TIM6_IRQHandler(void)
 void USART2_IRQHandler(void)
 {
     /* USER CODE BEGIN USART2_IRQn 0 */
-    /* Minimal ISR: fetch one byte and push into driver's RX ring buffer. */
-    if (__HAL_UART_GET_FLAG(&huart2, UART_FLAG_RXNE_RXFNE) != RESET) {
-        uint8_t byte = (uint8_t) (huart2.Instance->RDR & 0xFFu); /* Read clears RXNE */
+    /* Drain all available RX bytes first to clear RXNE and avoid IRQ storm. */
+    while (__HAL_UART_GET_FLAG(&huart2, UART_FLAG_RXNE_RXFNE) != RESET) {
+        uint8_t byte = (uint8_t) (huart2.Instance->RDR & 0xFFu); /* read clears RXNE */
         uart_stm32_irq_rx_feed(&g_uart2_ctrl, byte);
     }
+
+    /* Then clear common error flags (write to ICR via HAL macros). */
+    if (__HAL_UART_GET_FLAG(&huart2, UART_FLAG_ORE) != RESET) {
+        __HAL_UART_CLEAR_OREFLAG(&huart2);
+    }
+    if (__HAL_UART_GET_FLAG(&huart2, UART_FLAG_FE) != RESET) {
+        __HAL_UART_CLEAR_FEFLAG(&huart2);
+    }
+    if (__HAL_UART_GET_FLAG(&huart2, UART_FLAG_NE) != RESET) {
+        __HAL_UART_CLEAR_NEFLAG(&huart2);
+    }
+    if (__HAL_UART_GET_FLAG(&huart2, UART_FLAG_PE) != RESET) {
+        __HAL_UART_CLEAR_PEFLAG(&huart2);
+    }
+    /* Optional: clear IDLE (useful if you later switch to DMA RX). */
+    if (__HAL_UART_GET_FLAG(&huart2, UART_FLAG_IDLE) != RESET) {
+        __HAL_UART_CLEAR_IDLEFLAG(&huart2);
+    }
     /* USER CODE END USART2_IRQn 0 */
+
     HAL_UART_IRQHandler(&huart2);
+
     /* USER CODE BEGIN USART2_IRQn 1 */
-    /* Extension point: do not block, do not call RTOS primitives here. */
+    /* Do not block or call RTOS primitives here. */
     /* USER CODE END USART2_IRQn 1 */
 }
 
