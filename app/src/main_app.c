@@ -5,8 +5,8 @@
 #include "led_api.h"
 #include "led_instances.h"
 
-#include "usart.h"  // CubeMX: MX_USART2_UART_Init() + huart2
-#include <string.h> // strlen
+#include "usart.h" // CubeMX: MX_USART2_UART_Init() + huart2
+#include <string.h>
 
 #ifndef APP_TASK_STACK
 #define APP_TASK_STACK 256
@@ -14,10 +14,6 @@
 
 #ifndef APP_TASK_PRIO
 #define APP_TASK_PRIO (tskIDLE_PRIORITY + 1)
-#endif
-
-#ifndef BLINK_DELAY_MS
-#define BLINK_DELAY_MS 100u
 #endif
 
 #ifndef UART_TASK_STACK
@@ -28,9 +24,17 @@
 #define UART_TASK_PRIO (tskIDLE_PRIORITY + 2)
 #endif
 
+#ifndef BLINK_DELAY_MS
+#define BLINK_DELAY_MS 500u
+#endif
+
+#ifndef UART_SEND_DELAY_MS
+#define UART_SEND_DELAY_MS 1000u
+#endif
+
 extern UART_HandleTypeDef huart2;
 
-/* --- Blink --- */
+/* --- Blink Task --- */
 static void BlinkTask(void *arg)
 {
     (void) arg;
@@ -42,31 +46,38 @@ static void BlinkTask(void *arg)
     }
 }
 
-/* --- UART test --- */
-static void UARTTask(void *arg)
+/* --- UART TX Task --- */
+static void UartTask(void *arg)
 {
     (void) arg;
-    const char *msg = "Hello from UART2\r\n";
+    const char *msg = "Hello from UART2 (DMA)\r\n";
 
     for (;;) {
-        /* Blocking TX, short timeout to avoid long stalls */
-        (void) HAL_UART_Transmit(&huart2, (uint8_t *) msg, (uint16_t) strlen(msg), 100u);
-        vTaskDelay(pdMS_TO_TICKS(1000u));
+        // Počká, až nebude DMA zaneprázdněné
+        if (HAL_UART_GetState(&huart2) == HAL_UART_STATE_READY) {
+            HAL_UART_Transmit_DMA(&huart2, (uint8_t *) msg, strlen(msg));
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(UART_SEND_DELAY_MS));
+    }
+}
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+{
+    if (huart->Instance == USART2) {
+        // přenos byl dokončen – můžeš zapnout LED, nebo debug výpis
     }
 }
 
 int main(void)
 {
-    board_init(); // HAL_Init + clocks + MX_GPIO_Init + MX_USART2_UART_Init
+    board_init(); // HAL_Init + MX_GPIO + MX_USART2 + MX_DMA
 
-    /* Create tasks */
     (void) xTaskCreate(BlinkTask, "blink", APP_TASK_STACK, NULL, APP_TASK_PRIO, NULL);
-    (void) xTaskCreate(UARTTask, "uart", UART_TASK_STACK, NULL, UART_TASK_PRIO, NULL);
+    (void) xTaskCreate(UartTask, "uart", UART_TASK_STACK, NULL, UART_TASK_PRIO, NULL);
 
     vTaskStartScheduler();
 
-    /* Should never reach here */
-    for (;;) {
-        /* Place breakpoint here if scheduler fails to start */
+    while (1) {
     }
 }
