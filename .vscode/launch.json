@@ -2,7 +2,8 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug (OpenOCD + ST-Link)",
+      // ► Development variant: after Stop, firmware continues to run
+      "name": "Debug (OpenOCD + ST-Link) — Run after Stop",
       "type": "cortex-debug",
       "request": "launch",
       "servertype": "openocd",
@@ -13,22 +14,44 @@
       ],
       "svdFile": "${workspaceFolder}/boards/nucleo_g070rb/STM32G070.svd",
       "gdbPath": "/usr/bin/gdb-multiarch",
-      // break at Reset_Handler, then run straight to main()
+      // Break at Reset_Handler and run to main()
       "stopAtEntry": true,
       "runToEntryPoint": "main",
-      // make sure target is halted before setting breakpoints
+      // Make sure target is halted before setting breakpoints
       "preLaunchCommands": [
         "monitor reset halt"
       ],
-      "preLaunchTask": "Build (Ninja)",
+      // No postTerminateCommands — reset/run is handled by gdb-detach hook in OpenOCD
+      "postTerminateCommands": [],
       "serverLaunchTimeout": 10000,
       "showDevDebugOutput": "raw",
-      "rtos": "FreeRTOS",
-      // after debug session, release the target and stop OpenOCD
+      "rtos": "FreeRTOS"
+    },
+    {
+      // ► Clean shutdown: after Stop, everything terminates, firmware does not continue
+      "name": "Debug (OpenOCD + ST-Link) — Clean shutdown",
+      "type": "cortex-debug",
+      "request": "launch",
+      "servertype": "openocd",
+      "cwd": "${workspaceFolder}",
+      "executable": "${workspaceFolder}/build/app/app.elf",
+      "configFiles": [
+        "${workspaceFolder}/boards/nucleo_g070rb/st_mcu_g0.cfg"
+      ],
+      "svdFile": "${workspaceFolder}/boards/nucleo_g070rb/STM32G070.svd",
+      "gdbPath": "/usr/bin/gdb-multiarch",
+      "stopAtEntry": true,
+      "runToEntryPoint": "main",
+      "preLaunchCommands": [
+        "monitor reset halt"
+      ],
+      // Explicitly shut down OpenOCD; firmware will not run afterwards
       "postTerminateCommands": [
-        "monitor reset run",
         "monitor shutdown"
-      ]
+      ],
+      "serverLaunchTimeout": 10000,
+      "showDevDebugOutput": "raw",
+      "rtos": "FreeRTOS"
     }
   ]
 }
