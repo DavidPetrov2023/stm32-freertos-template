@@ -1,7 +1,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-#include "uart_api.h" // ✅ app vidí jen čisté UART API
+#include "uart_api.h" /* app uses only the clean API */
 #include "uart_app.h"
 
 #ifndef LINE_BUF_SIZE
@@ -20,7 +20,7 @@
 #define UART_TASK_PRIO (tskIDLE_PRIORITY + 2)
 #endif
 
-/* UART worker task: echoes completed lines, sends periodic hello. */
+/* UART worker task: echoes completed lines and sends a periodic hello. */
 static void UartTask(void *arg)
 {
     (void) arg;
@@ -38,7 +38,7 @@ static void UartTask(void *arg)
             lastHello = xTaskGetTickCount();
         }
 
-        /* 2) Read bytes (timeout 20 ms) */
+        /* 2) Read bytes with a small timeout */
         uint8_t ch;
         if (g_uart2.getc(&ch, 20)) {
             if (ch == '\r' || ch == '\n') {
@@ -50,7 +50,8 @@ static void UartTask(void *arg)
             } else if (idx < sizeof(line)) {
                 line[idx++] = ch;
             } else {
-                idx = 0; /* overflow policy */
+                /* Optional overflow policy: reset index */
+                idx = 0;
             }
         }
     }
@@ -58,9 +59,9 @@ static void UartTask(void *arg)
 
 void uart_app_start(void)
 {
-    /* Init UART API instance (interně vytvoří StreamBuffer a inicializuje driver) */
+    /* Initialize the API (internally sets up StreamBuffer and driver). */
     g_uart2.init();
 
-    /* Spawn UART task */
+    /* Spawn the UART task. */
     (void) xTaskCreate(UartTask, "uart", UART_TASK_STACK, NULL, UART_TASK_PRIO, NULL);
 }

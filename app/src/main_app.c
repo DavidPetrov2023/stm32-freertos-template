@@ -15,6 +15,6 @@ int main(void)
     vTaskStartScheduler();
 
     while (1) {
-        // Nemělo by nastat – fallback
+        ;
     }
 }
