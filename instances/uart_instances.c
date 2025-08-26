@@ -1,24 +1,51 @@
 #include "uart_instances.h"
-#include "usart.h"
+#include "stream_buffer.h"
+#include "uart/uart_dma_stm32.h"
+#include "usart.h" // extern UART_HandleTypeDef huart2
 
-static void uart2_send(const uint8_t *data, size_t len);
+#ifndef RX_STREAM_STORAGE_SIZE
+#define RX_STREAM_STORAGE_SIZE 512u
+#endif
 
-static const uart_dma_api_t g_uart2_api = {
-    .send = uart2_send,
-};
+/* --- StreamBuffer owned by instances layer --- */
+static StaticStreamBuffer_t s_rxStreamCtrl;
+static uint8_t s_rxStreamStorage[RX_STREAM_STORAGE_SIZE];
+static StreamBufferHandle_t s_rxStream;
 
-typedef struct
+/* RX callback provided to low-level driver (ISR-safe) */
+static void rx_cb(const uint8_t *data, size_t len, bool from_isr, void *ctx)
 {
-    UART_HandleTypeDef *huart;
-} uart_dma_ctrl_t;
+    (void) ctx;
+    if (!data || !len)
+        return;
 
-static uart_dma_ctrl_t g_uart2_ctrl = {
-    .huart = &huart2,
-};
+    if (from_isr) {
+        BaseType_t hpw = pdFALSE;
+        (void) xStreamBufferSendFromISR(s_rxStream, data, len, &hpw);
+        portYIELD_FROM_ISR(hpw);
+    } else {
+        (void) xStreamBufferSend(s_rxStream, data, len, 0);
+    }
+}
 
-const uart_dma_instance_t g_uart2 = {.p_api = &g_uart2_api, .p_ctrl = &g_uart2_ctrl, .p_cfg = NULL};
-
-static void uart2_send(const uint8_t *data, size_t len)
+void uart_instances_init(void)
 {
-    HAL_UART_Transmit_DMA(g_uart2_ctrl.huart, (uint8_t *) data, len);
+    /* Create RX StreamBuffer (static, no heap) */
+    s_rxStream = xStreamBufferCreateStatic(RX_STREAM_STORAGE_SIZE,
+                                           1, /* trigger level */
+                                           s_rxStreamStorage,
+                                           &s_rxStreamCtrl);
+
+    /* Bind to HAL handle &huart2 and register callback */
+    uart_dma_init(rx_cb, NULL);
+}
+
+size_t uart_instances_write(const uint8_t *data, size_t len)
+{
+    return uart_dma_write(data, len);
+}
+
+size_t uart_instances_read(uint8_t *dst, size_t maxlen, TickType_t to)
+{
+    return xStreamBufferReceive(s_rxStream, dst, maxlen, to);
 }

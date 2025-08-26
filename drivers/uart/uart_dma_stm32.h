@@ -1,19 +1,18 @@
 #pragma once
-
 #include "stm32g0xx_hal.h"
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
-typedef struct
-{
-    void (*send)(const uint8_t *data, size_t len);
-} uart_dma_api_t;
+/* User RX callback signature: delivers received chunk from ISR or thread. */
+typedef void (*uart_rx_cb_t)(const uint8_t *data, size_t len, bool from_isr, void *user_ctx);
 
-typedef struct
-{
-    const uart_dma_api_t *p_api;
-    void *p_ctrl;
-    void *p_cfg;
-} uart_dma_instance_t;
+/* Initialize UART DMA/IT driver.
+ * - huart: HAL UART handle (e.g., &huart2)
+ * - rx_cb: user RX callback (can be NULL)
+ * - user_ctx: opaque pointer passed back to rx_cb
+ */
+void uart_dma_init(uart_rx_cb_t rx_cb, void *user_ctx);
 
-void uart_dma_init(void);
+/* Non-blocking TX write. Copies to internal ring buffer and kicks IT transmit. */
+size_t uart_dma_write(const uint8_t *data, size_t len);
