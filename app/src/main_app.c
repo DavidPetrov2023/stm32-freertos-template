@@ -3,14 +3,14 @@
 #include "task.h"
 
 #include "led_app.h"
-#include "uart_dma_app.h"
+#include "uart_app.h"
 
 /* --- main() --- */
 int main(void)
 {
     board_init(); // HAL_Init + MX_GPIO + MX_DMA + MX_USART2_UART_Init
-    uart_dma_app_init();
-    led_init();
+    uart_app_start();
+    led_app_start();
 
     vTaskStartScheduler();
 

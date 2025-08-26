@@ -32,7 +32,7 @@ static void BlinkTask(void *arg)
     }
 }
 
-void led_init(void)
+void led_app_start(void)
 {
     xTaskCreate(BlinkTask, "blink", APP_TASK_STACK, NULL, APP_TASK_PRIO, NULL);
 }

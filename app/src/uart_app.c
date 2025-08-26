@@ -1,7 +1,7 @@
-#include "uart_dma_app.h"
+#include "uart_app.h"
 #include "uart/uart_dma_stm32.h"
 
-void uart_dma_app_init(void)
+void uart_app_start(void)
 {
     uart_dma_init();
 }
