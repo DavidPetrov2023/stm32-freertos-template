@@ -1,18 +1,20 @@
-#include "uart_instances.h"
+#include "FreeRTOS.h"
 #include "stream_buffer.h"
+#include "task.h"
 #include "uart/uart_dma_stm32.h"
+#include "uart_api.h"
 #include "usart.h" // extern UART_HandleTypeDef huart2
 
 #ifndef RX_STREAM_STORAGE_SIZE
 #define RX_STREAM_STORAGE_SIZE 512u
 #endif
 
-/* --- StreamBuffer owned by instances layer --- */
+/* --- Per-instance storage --- */
 static StaticStreamBuffer_t s_rxStreamCtrl;
 static uint8_t s_rxStreamStorage[RX_STREAM_STORAGE_SIZE];
 static StreamBufferHandle_t s_rxStream;
 
-/* RX callback provided to low-level driver (ISR-safe) */
+/* RX callback from driver (ISR-safe). */
 static void rx_cb(const uint8_t *data, size_t len, bool from_isr, void *ctx)
 {
     (void) ctx;
@@ -28,24 +30,45 @@ static void rx_cb(const uint8_t *data, size_t len, bool from_isr, void *ctx)
     }
 }
 
-void uart_instances_init(void)
+/* ---- API methods ---- */
+static void api_init(void)
 {
-    /* Create RX StreamBuffer (static, no heap) */
+    /* StreamBuffer (static, no heap) */
     s_rxStream = xStreamBufferCreateStatic(RX_STREAM_STORAGE_SIZE,
-                                           1, /* trigger level */
+                                           1,
                                            s_rxStreamStorage,
                                            &s_rxStreamCtrl);
 
-    /* Bind to HAL handle &huart2 and register callback */
+    /* Bind driver to huart2 and register callback */
+    /* Varianta driveru bez parametru huart: */
     uart_dma_init(rx_cb, NULL);
+
+    /* Pokud máš driver s parametrem huart, použij místo toho:
+       uart_dma_init(&huart2, rx_cb, NULL);
+    */
 }
 
-size_t uart_instances_write(const uint8_t *data, size_t len)
+static size_t api_write(const uint8_t *data, size_t len)
 {
     return uart_dma_write(data, len);
 }
 
-size_t uart_instances_read(uint8_t *dst, size_t maxlen, TickType_t to)
+static size_t api_read(uint8_t *dst, size_t maxlen, uint32_t timeout_ms)
 {
+    TickType_t to = (timeout_ms == (uint32_t) portMAX_DELAY) ? portMAX_DELAY
+                                                             : pdMS_TO_TICKS(timeout_ms);
     return xStreamBufferReceive(s_rxStream, dst, maxlen, to);
 }
+
+static bool api_getc(uint8_t *ch, uint32_t timeout_ms)
+{
+    return api_read(ch, 1, timeout_ms) == 1;
+}
+
+/* ---- Public API instance ---- */
+const uart_api_t g_uart2 = {
+    .init = api_init,
+    .write = api_write,
+    .read = api_read,
+    .getc = api_getc,
+};

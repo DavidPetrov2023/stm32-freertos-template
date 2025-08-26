@@ -1,8 +1,8 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
+#include "uart_api.h" // ✅ app vidí jen čisté UART API
 #include "uart_app.h"
-#include "uart_instances.h"
 
 #ifndef LINE_BUF_SIZE
 #define LINE_BUF_SIZE 64u
@@ -34,17 +34,17 @@ static void UartTask(void *arg)
     for (;;) {
         /* 1) Periodic output */
         if (xTaskGetTickCount() - lastHello >= pdMS_TO_TICKS(HELLO_PERIOD_MS)) {
-            (void) uart_instances_write(hello_msg, sizeof(hello_msg) - 1);
+            (void) g_uart2.write(hello_msg, sizeof(hello_msg) - 1);
             lastHello = xTaskGetTickCount();
         }
 
         /* 2) Read bytes (timeout 20 ms) */
         uint8_t ch;
-        if (uart_instances_getc(&ch, pdMS_TO_TICKS(20))) {
+        if (g_uart2.getc(&ch, 20)) {
             if (ch == '\r' || ch == '\n') {
                 if (idx > 0) {
-                    (void) uart_instances_write(line, idx);
-                    (void) uart_instances_write((const uint8_t *) "\r\n", 2);
+                    (void) g_uart2.write(line, idx);
+                    (void) g_uart2.write((const uint8_t *) "\r\n", 2);
                     idx = 0;
                 }
             } else if (idx < sizeof(line)) {
@@ -58,8 +58,8 @@ static void UartTask(void *arg)
 
 void uart_app_start(void)
 {
-    /* Init instances (creates StreamBuffer, registers callback, binds driver) */
-    uart_instances_init();
+    /* Init UART API instance (interně vytvoří StreamBuffer a inicializuje driver) */
+    g_uart2.init();
 
     /* Spawn UART task */
     (void) xTaskCreate(UartTask, "uart", UART_TASK_STACK, NULL, UART_TASK_PRIO, NULL);
