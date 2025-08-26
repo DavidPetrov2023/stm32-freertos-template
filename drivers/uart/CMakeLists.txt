@@ -1,6 +1,6 @@
 # drivers/uart/CMakeLists.txt
 add_library(driver_uart_stm32 STATIC
-    uart_stm32.c
+    uart_dma_stm32.c
 )
 
 target_include_directories(driver_uart_stm32 PUBLIC

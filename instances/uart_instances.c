@@ -1,27 +1,24 @@
 #include "uart_instances.h"
-#include "uart/uart_stm32.h"
-#include "usart.h" /* brings in UART_HandleTypeDef huart2 from Cube */
+#include "usart.h"
 
-extern UART_HandleTypeDef huart2;
+static void uart2_send(const uint8_t *data, size_t len);
 
-/* Concrete control object lives here */
-uart_stm32_ctrl_t g_uart2_ctrl;
-
-static const uart_cfg_t g_uart2_cfg = {
-    .baudrate = 115200u,
-    .parity = UART_PARITY_MODE_NONE,
-    .stop_bits = UART_STOP_MODE_1,
+static const uart_dma_api_t g_uart2_api = {
+    .send = uart2_send,
 };
 
-const uart_instance_t g_uart2 = {
-    .p_ctrl = (uart_ctrl_t *) &g_uart2_ctrl,
-    .p_cfg = &g_uart2_cfg,
-    .p_api = &g_uart_stm32_api,
-};
-
-void uart_instances_init(void)
+typedef struct
 {
-    /* Wire HAL handle before opening */
-    g_uart2_ctrl.hal = &huart2;
-    (void) g_uart2.p_api->open(g_uart2.p_ctrl, g_uart2.p_cfg);
+    UART_HandleTypeDef *huart;
+} uart_dma_ctrl_t;
+
+static uart_dma_ctrl_t g_uart2_ctrl = {
+    .huart = &huart2,
+};
+
+const uart_dma_instance_t g_uart2 = {.p_api = &g_uart2_api, .p_ctrl = &g_uart2_ctrl, .p_cfg = NULL};
+
+static void uart2_send(const uint8_t *data, size_t len)
+{
+    HAL_UART_Transmit_DMA(g_uart2_ctrl.huart, (uint8_t *) data, len);
 }

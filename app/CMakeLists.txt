@@ -9,6 +9,7 @@ target_include_directories(app.elf PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/include
     ${CMAKE_SOURCE_DIR}/interfaces
     ${CMAKE_SOURCE_DIR}/instances
+    ${CMAKE_SOURCE_DIR}/drivers/uart
 )
 
 set_property(TARGET app.elf PROPERTY C_STANDARD 11)
@@ -22,10 +23,10 @@ target_compile_options(app.elf PRIVATE
 
 target_link_libraries(app.elf PRIVATE
     instances
-    driver_uart_stm32
     led_gpio
     cube_fw
     board_bsp
+    driver_uart_stm32
 )
 
 # Linker flags exportované z Cube

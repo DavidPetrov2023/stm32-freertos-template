@@ -3,6 +3,7 @@
 
 /* Prefer CubeMX headers to get prototypes of MX_* functions */
 #include "gpio.h"
+#include "uart/uart_dma_stm32.h"
 #include "usart.h"
 
 /* If your project has main.h with SystemClock_Config, you can include it too.
@@ -13,6 +14,8 @@
 
 /* Fallback when CubeMX clock configuration is missing */
 __weak void SystemClock_Config(void) {}
+
+extern UART_HandleTypeDef huart2;
 
 void board_init(void)
 {
@@ -26,4 +29,5 @@ void board_init(void)
     MX_GPIO_Init();
     MX_DMA_Init();
     MX_USART2_UART_Init();
+    uart_dma_init(&huart2);
 }

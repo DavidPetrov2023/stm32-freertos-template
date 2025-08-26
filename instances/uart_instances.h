@@ -1,16 +1,8 @@
-#pragma once
-#include "uart_api.h"
+#ifndef UART_INSTANCES_H
+#define UART_INSTANCES_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "uart/uart_dma_stm32.h"
 
-/* Public instances */
-extern const uart_instance_t g_uart2;
+extern const uart_dma_instance_t g_uart2;
 
-/* Call once at boot to wire HAL handle and open UARTs */
-void uart_instances_init(void);
-
-#ifdef __cplusplus
-}
-#endif
+#endif /* UART_INSTANCES_H */
