@@ -29,5 +29,5 @@ void board_init(void)
     MX_GPIO_Init();
     MX_DMA_Init();
     MX_USART2_UART_Init();
-    uart_dma_init(&huart2);
+    uart_dma_init();
 }

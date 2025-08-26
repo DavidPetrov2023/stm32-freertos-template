@@ -16,4 +16,4 @@ typedef struct
     void *p_cfg;
 } uart_dma_instance_t;
 
-void uart_dma_init(UART_HandleTypeDef *huart);
+void uart_dma_init(void);
