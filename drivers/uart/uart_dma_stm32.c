@@ -63,9 +63,13 @@ static void tx_kick_start(void)
 
 /* ---- Public API ---- */
 
-void uart_dma_init(uart_rx_cb_t rx_cb, void *user_ctx)
+bool uart_dma_init(UART_HandleTypeDef *huart, uart_rx_cb_t rx_cb, void *user_ctx)
 {
-    s_huart = &huart2;
+    if (!huart)
+        return false;
+
+    /* Bind handle and user callback */
+    s_huart = huart;
     s_rx_cb = rx_cb;
     s_rx_ctx = user_ctx;
 
@@ -74,9 +78,15 @@ void uart_dma_init(uart_rx_cb_t rx_cb, void *user_ctx)
     tx_busy = 0;
     tx_chunk_len = 0;
 
-    /* Start RX: receive-to-idle with DMA, disable half-transfer IRQ (not needed). */
-    HAL_UARTEx_ReceiveToIdle_DMA(s_huart, rx_dma_buf, RX_DMA_SIZE);
+    /* (Optional) Clear UART error/IDLE flags before arming RX */
+    __HAL_UART_CLEAR_OREFLAG(s_huart);  /* if available on your HAL */
+    __HAL_UART_CLEAR_IDLEFLAG(s_huart); /* clear IDLE before enabling */
+
+    /* Start RX: receive-to-idle with DMA, then disable half-transfer IRQ */
+    HAL_StatusTypeDef st = HAL_UARTEx_ReceiveToIdle_DMA(s_huart, rx_dma_buf, RX_DMA_SIZE);
     __HAL_DMA_DISABLE_IT(s_huart->hdmarx, DMA_IT_HT);
+
+    return (st == HAL_OK);
 }
 
 size_t uart_dma_write(const uint8_t *data, size_t len)

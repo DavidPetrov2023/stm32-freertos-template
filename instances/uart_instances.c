@@ -1,9 +1,10 @@
 #include "FreeRTOS.h"
 #include "stream_buffer.h"
 #include "task.h"
-#include "uart/uart_dma_stm32.h"
-#include "uart_api.h"
-#include "usart.h" // extern UART_HandleTypeDef huart2
+
+#include "uart/uart_dma_stm32.h" // low-level driver (HAL-only)
+#include "uart_api.h"            // clean API exposed to app
+#include "usart.h"               // extern UART_HandleTypeDef huart2
 
 #ifndef RX_STREAM_STORAGE_SIZE
 #define RX_STREAM_STORAGE_SIZE 512u
@@ -14,11 +15,11 @@ static StaticStreamBuffer_t s_rxStreamCtrl;
 static uint8_t s_rxStreamStorage[RX_STREAM_STORAGE_SIZE];
 static StreamBufferHandle_t s_rxStream;
 
-/* RX callback from driver (ISR-safe). */
+/* RX callback invoked by the low-level driver (ISR-safe). */
 static void rx_cb(const uint8_t *data, size_t len, bool from_isr, void *ctx)
 {
     (void) ctx;
-    if (!data || !len)
+    if (!data || len == 0)
         return;
 
     if (from_isr) {
@@ -33,19 +34,15 @@ static void rx_cb(const uint8_t *data, size_t len, bool from_isr, void *ctx)
 /* ---- API methods ---- */
 static void api_init(void)
 {
-    /* StreamBuffer (static, no heap) */
+    /* Create StreamBuffer statically (no heap). */
     s_rxStream = xStreamBufferCreateStatic(RX_STREAM_STORAGE_SIZE,
-                                           1,
+                                           1, /* trigger level */
                                            s_rxStreamStorage,
                                            &s_rxStreamCtrl);
+    configASSERT(s_rxStream != NULL);
 
-    /* Bind driver to huart2 and register callback */
-    /* Varianta driveru bez parametru huart: */
-    uart_dma_init(rx_cb, NULL);
-
-    /* Pokud máš driver s parametrem huart, použij místo toho:
-       uart_dma_init(&huart2, rx_cb, NULL);
-    */
+    /* Bind driver to a specific UART handle and register the RX callback. */
+    uart_dma_init(&huart2, rx_cb, NULL);
 }
 
 static size_t api_write(const uint8_t *data, size_t len)
