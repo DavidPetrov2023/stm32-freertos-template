@@ -1,6 +1,7 @@
 # Application (user code)
 add_executable(app.elf
     src/main_app.c
+    src/led_app.c
     src/error_handler.c   
     ${CMAKE_SOURCE_DIR}/boards/nucleo_g070rb/cube/Core/Src/stm32g0xx_it.c
 )
